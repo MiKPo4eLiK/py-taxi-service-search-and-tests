@@ -5,7 +5,6 @@ from django.urls import reverse
 
 
 class Manufacturer(models.Model):
-    objects = None
     name = models.CharField(max_length=255, unique=True)
     country = models.CharField(max_length=255)
 
@@ -36,5 +35,5 @@ class Car(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.CASCADE)
     drivers = models.ManyToManyField(Driver, related_name="cars")
 
-    def __str__(self) -> CharField:
+    def __str__(self) -> str:
         return self.model

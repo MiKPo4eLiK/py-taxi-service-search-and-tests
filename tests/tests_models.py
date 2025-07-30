@@ -5,8 +5,8 @@ from taxi.models import Manufacturer, Car
 
 class ModelTests(TestCase):
     def test_manufacturer_str(self) -> None:
-        manufacturer = Manufacturer.objects.create(name="test")
-        self.assertEqual(str(manufacturer), manufacturer.name, manufacturer.country)
+        manufacturer = Manufacturer.objects.create(name="test", country="Testland")
+        self.assertEqual(str(manufacturer), f"{manufacturer.name} {manufacturer.country}")
 
     def test_driver_str(self) -> None:
         driver = get_user_model().objects.create(
@@ -21,5 +21,6 @@ class ModelTests(TestCase):
         )
 
     def test_car_str(self) -> None:
-        car = Car.objects.create(name="test")
+        manufacturer = Manufacturer.objects.create(name="Toyota", country="Japan")
+        car = Car.objects.create(model="Corolla", manufacturer=manufacturer)
         self.assertEqual(str(car), car.model)

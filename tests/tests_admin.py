@@ -17,11 +17,11 @@ class AdminSiteTests(TestCase):
         )
 
     def test_user_license_number_listed(self) -> None:
-        url = reverse("admin:taxi_license_number_changelist")
+        url = reverse("admin:taxi_driver_changelist")
         res = self.client.get(url)
         self.assertContains(res, self.admin_user.license_number)
 
     def test_user_detail_license_number_listed(self) -> None:
-        url = reverse("admin:taxi_license_number_change", args=[self.admin_user.id])
+        url = reverse("admin:taxi_driver_change", args=[self.admin_user.id])
         res = self.client.get(url)
         self.assertContains(res, self.admin_user.license_number)
