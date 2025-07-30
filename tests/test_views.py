@@ -4,10 +4,11 @@ from django.urls import reverse
 
 LITERARY_FORMAT_URL = reverse("taxi:manufacturer-list")
 
+
 class PublicManufacturerTest(TestCase):
     def test_login_required(self) -> None:
         res = self.client.get(LITERARY_FORMAT_URL)
-        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.status_code, 302)
 
 
 class PrivateManufacturerTest(TestCase):
@@ -25,9 +26,9 @@ class PrivateManufacturerTest(TestCase):
             "password2": "usertest174",
             "first_name": "Test First",
             "last_name": "Test Last",
-            "license_number": "Test number",
+            "license_number": "ABC12345",
         }
-        self.client.post(reverse("taxi-driver-creste"), data=form_data)
+        self.client.post(reverse("taxi:driver-create"), data=form_data)
         new_user = get_user_model().objects.get(username=form_data["username"])
 
         self.assertEqual(new_user.license_number, form_data["license_number"])

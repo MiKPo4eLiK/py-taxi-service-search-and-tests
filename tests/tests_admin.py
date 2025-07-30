@@ -13,7 +13,7 @@ class AdminSiteTests(TestCase):
         self.admin_user = get_user_model().objects.create_user(
             username="admin1",
             password="testadmin123",
-            license_number="Test number",
+            license_number="ABC12345",
         )
 
     def test_user_license_number_listed(self) -> None:

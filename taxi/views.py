@@ -1,14 +1,12 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import QuerySet
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.template.defaultfilters import title
 from django.urls import reverse_lazy
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
-
+from django import forms
 from .models import Driver, Car, Manufacturer
-from .forms import DriverCreationForm, DriverLicenseUpdateForm, CarForm
+from .forms import DriverCreationForm, DriverLicenseUpdateForm, CarForm, CarSearchForm
 
 
 @login_required
@@ -56,10 +54,12 @@ class ManufacturerDeleteView(LoginRequiredMixin, generic.DeleteView):
     success_url = reverse_lazy("taxi:manufacturer-list")
 
 
-class CarSearchForm:
-    def __init__(self) -> None:
-        self.cleaned_data = None
-        self.is_valid = None
+class CarSearchForm(forms.Form):
+    model = forms.CharField(
+        max_length=100,
+        required=False,
+        label="Search by model"
+    )
 
 
 class CarListView(LoginRequiredMixin, generic.ListView):
@@ -67,19 +67,18 @@ class CarListView(LoginRequiredMixin, generic.ListView):
     paginate_by = 5
 
     def get_context_data(self, *, object_list=None, **kwargs) -> dict:
-        context = super(CarListView, self).get_context_data(**kwargs)
-        title = self.request.GET.get("title", "")
-        context["title"] = title
-        context["search_form"] = CarSearchForm(
-            initial={"title": title}
-        )
+        context = super().get_context_data(**kwargs)
+        model_name = self.request.GET.get("model", "")
+        context["search_form"] = CarSearchForm(initial={"model": model_name})
         return context
 
     def get_queryset(self) -> QuerySet:
         queryset = Car.objects.select_related("manufacturer")
         form = CarSearchForm(self.request.GET)
-        if form.is_valid:
-            return queryset.filter(title__icontains=form.cleaned_data["title"])
+        if form.is_valid():
+            model = form.cleaned_data.get("model")
+            if model:
+                queryset = queryset.filter(model__icontains=model)
         return queryset
 
 
