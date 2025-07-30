@@ -1,16 +1,18 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import QuerySet
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.template.defaultfilters import title
 from django.urls import reverse_lazy
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .models import Driver, Car, Manufacturer
-from .forms import DriverCreationForm, DriverLicenseUpdateForm, CarForm
+from .forms import DriverCreationForm, DriverLicenseUpdateForm, CarForm, DriverSearhForm
 
 
 @login_required
-def index(request):
+def index(request) -> HttpResponseRedirect:
     """View function for the home page of the site."""
 
     num_drivers = Driver.objects.count()
@@ -54,10 +56,31 @@ class ManufacturerDeleteView(LoginRequiredMixin, generic.DeleteView):
     success_url = reverse_lazy("taxi:manufacturer-list")
 
 
+class CarSearchForm:
+    def __init__(self) -> None:
+        self.cleaned_data = None
+        self.is_valid = None
+
+
 class CarListView(LoginRequiredMixin, generic.ListView):
     model = Car
     paginate_by = 5
-    queryset = Car.objects.select_related("manufacturer")
+
+    def get_context_data(self, *, object_list=None, **kwargs) -> dict:
+        context = super(CarListView, self).get_context_data(**kwargs)
+        title = self.request.GET.get("title", "")
+        context["title"] = title
+        context["search_form"] = CarSearchForm(
+            initial={"title": title}
+        )
+        return context
+
+    def get_queryset(self) -> QuerySet:
+        queryset = Car.objects.select_related("manufacturer")
+        form = CarSearchForm(self.request.GET)
+        if form.is_valid:
+            return queryset.filter(title__icontains=form.cleaned_data["title"])
+        return queryset
 
 
 class CarDetailView(LoginRequiredMixin, generic.DetailView):
@@ -108,7 +131,7 @@ class DriverDeleteView(LoginRequiredMixin, generic.DeleteView):
 
 
 @login_required
-def toggle_assign_to_car(request, pk):
+def toggle_assign_to_car(request, pk) -> HttpResponseRedirect:
     driver = Driver.objects.get(id=request.user.id)
     if (
         Car.objects.get(id=pk) in driver.cars.all()
